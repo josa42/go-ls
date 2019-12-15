@@ -3,7 +3,6 @@ package files
 import (
 	"bytes"
 	"errors"
-	"log"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -85,8 +84,6 @@ type file struct {
 }
 
 func (s *file) ApplyCanges(changes []lsp.TextDocumentContentChangeEvent) error {
-	log.Printf("applyChanges: %d", len(changes))
-
 	if len(changes) == 1 && changes[0].Range == nil {
 		// If range is empty, we expect the full content of file, i.e. a single change with no range.
 		change := changes[0]

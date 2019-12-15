@@ -13,7 +13,6 @@ import (
 )
 
 func New() *Server {
-	// var handlers = defaultHandlers()
 	var handlers = handler.Map{}
 
 	s := &Server{
@@ -31,6 +30,8 @@ type Server struct {
 	jrpc2Server *jrpc2.Server
 	handlers    handler.Map
 
+	VerboseLogging bool
+
 	State *files.State
 
 	Root         RootHandler
@@ -38,11 +39,13 @@ type Server struct {
 }
 
 func (s *Server) register(method string, handlerFn handler.Func) {
-	log.Printf("register: %s", method)
-	s.handlers[method] = logMiddleware(handlerFn)
+	if s.VerboseLogging {
+		log.Printf("register: %s", method)
+	}
+	s.handlers[method] = logMiddleware(s.VerboseLogging, handlerFn)
 }
 
-func logMiddleware(h handler.Func) handler.Func {
+func logMiddleware(verbose bool, h handler.Func) handler.Func {
 	return func(c context.Context, r *jrpc2.Request) (interface{}, error) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -52,11 +55,13 @@ func logMiddleware(h handler.Func) handler.Func {
 
 		resp, err := h(c, r)
 
-		s, _ := json.MarshalIndent(resp, "", "  ")
-		log.Printf("=> (response) %s", s)
+		if verbose {
+			s, _ := json.MarshalIndent(resp, "", "  ")
+			log.Printf("=> (response) %s", s)
 
-		if err != nil {
-			log.Printf("=> (error)  %s", err.Error())
+			if err != nil {
+				log.Printf("=> (error)  %s", err.Error())
+			}
 		}
 
 		return resp, err
@@ -76,9 +81,13 @@ func (s *Server) Start() {
 		CheckRequest: func(ctx context.Context, req *jrpc2.Request) error {
 			d := map[string]interface{}{}
 			req.UnmarshalParams(&d)
-			log.Printf("<= (request) %s", req.Method())
-			// ps, _ := json.MarshalIndent(d, "", "  ")
-			// log.Printf("<= (request) %s | %s", req.Method(), ps)
+
+			if s.VerboseLogging {
+				ps, _ := json.MarshalIndent(d, "", "  ")
+				log.Printf("<= (request) %s | %s", req.Method(), ps)
+			} else {
+				log.Printf("<= (request) %s", req.Method())
+			}
 
 			return nil
 		},

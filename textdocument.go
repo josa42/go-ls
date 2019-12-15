@@ -5,7 +5,8 @@ import (
 	"log"
 
 	"github.com/creachadair/jrpc2"
-	"github.com/sourcegraph/go-lsp"
+	"github.com/josa42/go-ls/lsp"
+	golsp "github.com/sourcegraph/go-lsp"
 )
 
 type TextDocumentHandler struct {
@@ -24,11 +25,11 @@ func (h *TextDocumentHandler) ColorPresentation(func(RequestContext)) {
 
 }
 
-func (h *TextDocumentHandler) Completion(fn func(RequestContext, lsp.CompletionParams) (lsp.CompletionList, error)) {
+func (h *TextDocumentHandler) Completion(fn func(RequestContext, golsp.CompletionParams) (golsp.CompletionList, error)) {
 	// TODO enable completion in capabilities
 
 	h.server.register("textDocument/completion", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := lsp.CompletionParams{}
+		p := golsp.CompletionParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
@@ -60,9 +61,9 @@ func (h *TextDocumentHandler) DocumentLink(func(RequestContext)) {
 
 }
 
-func (h *TextDocumentHandler) DocumentSymbol(fn func(RequestContext, lsp.DocumentSymbolParams) ([]lsp.SymbolInformation, error)) {
+func (h *TextDocumentHandler) DocumentSymbol(fn func(RequestContext, golsp.DocumentSymbolParams) ([]golsp.SymbolInformation, error)) {
 	h.server.register("textDocument/documentSymbol", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := lsp.DocumentSymbolParams{}
+		p := golsp.DocumentSymbolParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
@@ -76,13 +77,25 @@ func (h *TextDocumentHandler) DocumentSymbol(fn func(RequestContext, lsp.Documen
 
 }
 
-func (h *TextDocumentHandler) FoldingRange(func(RequestContext)) {
+func (h *TextDocumentHandler) FoldingRange(fn func(RequestContext, lsp.FoldingRangeParams) ([]lsp.FoldingRange, error)) {
+	h.server.register("textDocument/foldingRange", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
+		p := lsp.FoldingRangeParams{}
+		if err := r.UnmarshalParams(&p); err != nil {
+			log.Printf("%v", err)
+			return nil, err
+		}
+
+		return fn(RequestContext{
+			Server:  *h.server,
+			Context: ctx,
+		}, p)
+	})
 
 }
 
-func (h *TextDocumentHandler) Formatting(fn func(RequestContext, lsp.DocumentFormattingParams) ([]lsp.TextEdit, error)) {
+func (h *TextDocumentHandler) Formatting(fn func(RequestContext, golsp.DocumentFormattingParams) ([]golsp.TextEdit, error)) {
 	h.server.register("textDocument/formatting", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := lsp.DocumentFormattingParams{}
+		p := golsp.DocumentFormattingParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
@@ -94,9 +107,9 @@ func (h *TextDocumentHandler) Formatting(fn func(RequestContext, lsp.DocumentFor
 	})
 }
 
-func (h *TextDocumentHandler) Hover(fn func(RequestContext, lsp.TextDocumentPositionParams) (*lsp.Hover, error)) {
+func (h *TextDocumentHandler) Hover(fn func(RequestContext, golsp.TextDocumentPositionParams) (*golsp.Hover, error)) {
 	h.server.register("textDocument/hover", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := lsp.TextDocumentPositionParams{}
+		p := golsp.TextDocumentPositionParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
@@ -144,9 +157,9 @@ func (h *TextDocumentHandler) WillSaveWaitUntil(func(RequestContext)) {
 
 }
 
-func (h *TextDocumentHandler) DidChange(fn func(RequestContext, lsp.DidChangeTextDocumentParams) error) {
+func (h *TextDocumentHandler) DidChange(fn func(RequestContext, golsp.DidChangeTextDocumentParams) error) {
 	h.server.register("textDocument/didChange", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := lsp.DidChangeTextDocumentParams{}
+		p := golsp.DidChangeTextDocumentParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
@@ -158,9 +171,9 @@ func (h *TextDocumentHandler) DidChange(fn func(RequestContext, lsp.DidChangeTex
 	})
 }
 
-func (h *TextDocumentHandler) DidClose(fn func(RequestContext, lsp.DidCloseTextDocumentParams) error) {
+func (h *TextDocumentHandler) DidClose(fn func(RequestContext, golsp.DidCloseTextDocumentParams) error) {
 	h.server.register("textDocument/didClose", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := lsp.DidCloseTextDocumentParams{}
+		p := golsp.DidCloseTextDocumentParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
@@ -172,9 +185,9 @@ func (h *TextDocumentHandler) DidClose(fn func(RequestContext, lsp.DidCloseTextD
 	})
 }
 
-func (h *TextDocumentHandler) DidOpen(fn func(RequestContext, lsp.DidOpenTextDocumentParams) error) {
+func (h *TextDocumentHandler) DidOpen(fn func(RequestContext, golsp.DidOpenTextDocumentParams) error) {
 	h.server.register("textDocument/didOpen", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := lsp.DidOpenTextDocumentParams{}
+		p := golsp.DidOpenTextDocumentParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
@@ -186,6 +199,6 @@ func (h *TextDocumentHandler) DidOpen(fn func(RequestContext, lsp.DidOpenTextDoc
 	})
 }
 
-func (h *TextDocumentHandler) PublishDiagnostics(ctx context.Context, vs lsp.PublishDiagnosticsParams) error {
+func (h *TextDocumentHandler) PublishDiagnostics(ctx context.Context, vs golsp.PublishDiagnosticsParams) error {
 	return h.server.push(ctx, "textDocument/publishDiagnostics", vs)
 }
