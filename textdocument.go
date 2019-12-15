@@ -72,9 +72,9 @@ func (h *TextDocumentHandler) DocumentLink(func(RequestContext)) {
 
 }
 
-func (h *TextDocumentHandler) DocumentSymbol(fn func(RequestContext, golsp.DocumentSymbolParams) ([]golsp.SymbolInformation, error)) {
+func (h *TextDocumentHandler) DocumentSymbol(fn func(RequestContext, lsp.DocumentSymbolParams) ([]lsp.DocumentSymbol, error)) {
 	h.server.register("textDocument/documentSymbol", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
-		p := golsp.DocumentSymbolParams{}
+		p := lsp.DocumentSymbolParams{}
 		if err := r.UnmarshalParams(&p); err != nil {
 			log.Printf("%v", err)
 			return nil, err
