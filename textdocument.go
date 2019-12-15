@@ -13,8 +13,19 @@ type TextDocumentHandler struct {
 	server *Server
 }
 
-func (h *TextDocumentHandler) CodeAction(func(RequestContext)) {
+func (h *TextDocumentHandler) CodeAction(fn func(RequestContext, lsp.CodeActionParams) ([]lsp.CodeAction, error)) {
+	h.server.register("textDocument/codeAction", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
+		p := lsp.CodeActionParams{}
+		if err := r.UnmarshalParams(&p); err != nil {
+			log.Printf("%v", err)
+			return nil, err
+		}
 
+		return fn(RequestContext{
+			Server:  *h.server,
+			Context: ctx,
+		}, p)
+	})
 }
 
 func (h *TextDocumentHandler) CodeLens(func(RequestContext)) {

@@ -10,7 +10,7 @@
 - [ ] `initialize`
 - [ ] `initialized`
 - [ ] `shutdown`
-- [ ] `textDocument/codeAction`
+- [x] `textDocument/codeAction`
 - [ ] `textDocument/codeLens`
 - [ ] `textDocument/colorPresentation`
 - [x] `textDocument/completion`

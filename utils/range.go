@@ -37,7 +37,7 @@ func lastChar(lines []string) int {
 	}
 
 	line := []rune(lines[len(lines)-1])
-	idx := len([]rune(line)) - 1
+	idx := len([]rune(line))
 	if idx >= 0 {
 		return idx
 	}
