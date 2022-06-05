@@ -22,6 +22,7 @@ func New() *Server {
 
 	s.Root = RootHandler{server: s}
 	s.TextDocument = TextDocumentHandler{server: s}
+	s.Workspace = WorkspaceHandler{server: s}
 
 	return s
 }
@@ -36,6 +37,7 @@ type Server struct {
 
 	Root         RootHandler
 	TextDocument TextDocumentHandler
+	Workspace    WorkspaceHandler
 }
 
 func (s *Server) register(method string, handlerFn handler.Func) {
