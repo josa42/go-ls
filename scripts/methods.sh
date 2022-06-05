@@ -25,24 +25,28 @@ r() {
   | uniq
 }
 
-for a in ${arrows[@]}; do
-  echo $a
-  r $a
+echo "# TODOs"
+echo ""
+
+for a in "${arrows[@]}"; do
+  echo "$a"
+  r "$a"
   echo ""
 done
 
-echo "To Server"
+echo "## To Server"
 echo ""
-for a in ${to_server[@]}; do
-  r $a
-done | sort | uniq | sed 's/^/- [ ] /'
+for a in "${to_server[@]}"; do
+  r "$a"
+done | sort | uniq | sed 's/^\(.*\)$/- [ ] `\1`/'
 echo ""
 
 
 echo "## To Client"
 echo ""
-for a in ${to_client[@]}; do
-  r $a
-done | sort | uniq | sed 's/^/- [ ] /'
+for a in "${to_client[@]}"; do
+  r "$a"
+done | sort | uniq | sed 's/^\(.*\)$/- [ ] `\1`/'
+echo ""
 echo ""
 
