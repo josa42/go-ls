@@ -5,4 +5,3 @@
 ## License
 
 [MIT © Josa Gesell](LICENSE)
-

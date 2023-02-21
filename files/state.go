@@ -3,6 +3,7 @@ package files
 import (
 	"bytes"
 	"errors"
+	"log"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -13,13 +14,32 @@ import (
 type State struct {
 	mu sync.Mutex
 
-	data map[lsp.DocumentURI]*file
+	data           map[lsp.DocumentURI]*file
+	changeHandlers []func(lsp.DocumentURI)
 }
 
 func NewState() *State {
 	return &State{
-		data: map[lsp.DocumentURI]*file{},
+		data:           map[lsp.DocumentURI]*file{},
+		changeHandlers: []func(lsp.DocumentURI){},
 	}
+}
+
+func (s *State) OnChange(handler func(lsp.DocumentURI)) {
+	s.changeHandlers = append(s.changeHandlers, handler)
+}
+
+func (s *State) triggerChange(uri lsp.DocumentURI) {
+	log.Printf("triggerChange: %s", uri)
+	for _, handler := range s.changeHandlers {
+		handler(uri)
+	}
+}
+
+func (s *State) Has(uri lsp.DocumentURI) bool {
+	_, ok := s.data[uri]
+
+	return ok
 }
 
 func (s *State) GetText(uri lsp.DocumentURI) (string, error) {
@@ -55,6 +75,7 @@ func (s *State) SetText(uri lsp.DocumentURI, content string) {
 	s.data[uri] = &file{
 		Text: content,
 	}
+	s.triggerChange(uri)
 }
 
 func (s *State) SetDocument(doc lsp.TextDocumentItem) {
@@ -66,6 +87,7 @@ func (s *State) Remove(uri lsp.DocumentURI) {
 	defer s.mu.Unlock()
 
 	delete(s.data, uri)
+	s.triggerChange(uri)
 }
 
 func (s *State) ApplyCanges(uri lsp.DocumentURI, changes []lsp.TextDocumentContentChangeEvent) error {
@@ -73,7 +95,12 @@ func (s *State) ApplyCanges(uri lsp.DocumentURI, changes []lsp.TextDocumentConte
 	defer s.mu.Unlock()
 
 	if f, ok := s.data[uri]; ok {
-		return f.ApplyCanges(changes)
+		if err := f.ApplyCanges(changes); err != nil {
+			return err
+		}
+
+		s.triggerChange(uri)
+		return nil
 	}
 
 	return errors.New("Unknown file")

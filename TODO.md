@@ -39,7 +39,7 @@
 - [ ] `textDocument/willSaveWaitUntil`
 - [ ] `workspace/didChangeConfiguration`
 - [ ] `workspace/didChangeWatchedFiles`
-- [ ] `workspace/executeCommand`
+- [x] `workspace/executeCommand`
 - [ ] `workspace/symbol`
 
 ## To Client
