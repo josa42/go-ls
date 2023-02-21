@@ -44,55 +44,22 @@ func (s *Server) register(method string, handlerFn handler.Func) {
 	if s.VerboseLogging {
 		log.Printf("register: %s", method)
 	}
-	s.handlers[method] = logMiddleware(s.VerboseLogging, handlerFn)
-}
-
-func logMiddleware(verbose bool, h handler.Func) handler.Func {
-	return func(c context.Context, r *jrpc2.Request) (interface{}, error) {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("Recovered: '%v'", r)
-			}
-		}()
-
-		resp, err := h(c, r)
-
-		if verbose {
-			s, _ := json.MarshalIndent(resp, "", "  ")
-			log.Printf("=> (response) %s", s)
-
-			if err != nil {
-				log.Printf("=> (error)  %s", err.Error())
-			}
-		}
-
-		return resp, err
-	}
+	s.handlers[method] = handlerFn
 }
 
 func (s *Server) push(ctx context.Context, method string, p interface{}) error {
 	ps, _ := json.MarshalIndent(p, "", "  ")
-	log.Printf("=> (push) %s", ps)
+	if s.VerboseLogging {
+		log.Printf("=> (push) %s", ps)
+	}
 
-	return s.jrpc2Server.Push(ctx, method, p)
+	return s.jrpc2Server.Notify(ctx, method, p)
 }
 
 func (s *Server) Start() {
 	s.jrpc2Server = jrpc2.NewServer(s.handlers, &jrpc2.ServerOptions{
 		AllowPush: true,
-		CheckRequest: func(ctx context.Context, req *jrpc2.Request) error {
-			d := map[string]interface{}{}
-			req.UnmarshalParams(&d)
-
-			if s.VerboseLogging {
-				ps, _ := json.MarshalIndent(d, "", "  ")
-				log.Printf("<= (request) %s | %s", req.Method(), ps)
-			} else {
-				log.Printf("<= (request) %s", req.Method())
-			}
-
-			return nil
-		},
+		RPCLog:    s,
 	})
 	s.jrpc2Server.Start(channel.Header("")(os.Stdin, os.Stdout))
 }
@@ -104,4 +71,23 @@ func (s *Server) Wait() error {
 func (s *Server) StartAndWait() error {
 	s.Start()
 	return s.Wait()
+}
+
+func (s *Server) LogRequest(ctx context.Context, req *jrpc2.Request) {
+	d := map[string]interface{}{}
+	req.UnmarshalParams(&d)
+
+	ps, _ := json.MarshalIndent(d, "", "  ")
+	if s.VerboseLogging {
+		log.Printf("<= (request) %s | %s", req.Method(), ps)
+	} else {
+		log.Printf("<= (request) %s", req.Method())
+	}
+}
+
+func (s *Server) LogResponse(ctx context.Context, resp *jrpc2.Response) {
+	t, _ := json.MarshalIndent(resp, "", "  ")
+	if s.VerboseLogging {
+		log.Printf("=> (response) %s", t)
+	}
 }

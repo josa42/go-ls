@@ -3,7 +3,6 @@ package files
 import (
 	"bytes"
 	"errors"
-	"log"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -30,7 +29,6 @@ func (s *State) OnChange(handler func(lsp.DocumentURI)) {
 }
 
 func (s *State) triggerChange(uri lsp.DocumentURI) {
-	log.Printf("triggerChange: %s", uri)
 	for _, handler := range s.changeHandlers {
 		handler(uri)
 	}
