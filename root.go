@@ -34,6 +34,15 @@ func (h *RootHandler) Initialize(fn func(Server, context.Context, lsp.Initialize
 	})
 }
 
+func (h *RootHandler) Shutdown(fn func(RequestContext) error) {
+	h.server.register("shutdown", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
+		return nil, fn(RequestContext{
+			Server:  *h.server,
+			Context: ctx,
+		})
+	})
+}
+
 // 		"initialized":                    noop,
 // 		"shutdown":                       noop,
 // 		"exit":                           noop,

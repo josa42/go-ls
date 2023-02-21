@@ -9,7 +9,7 @@
 - [ ] `exit`
 - [ ] `initialize`
 - [ ] `initialized`
-- [ ] `shutdown`
+- [x] `shutdown`
 - [x] `textDocument/codeAction`
 - [ ] `textDocument/codeLens`
 - [ ] `textDocument/colorPresentation`
