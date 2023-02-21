@@ -1,9 +1,7 @@
 package lsp
 
-import "github.com/sourcegraph/go-lsp"
-
 type DocumentSymbolParams struct {
-	TextDocument lsp.TextDocumentIdentifier `json:"textDocument"`
+	TextDocument TextDocumentIdentifier `json:"textDocument"`
 }
 
 type SymbolKind int
@@ -70,13 +68,13 @@ type DocumentSymbol struct {
 	 * like comments. This information is typically used to determine if the clients cursor is
 	 * inside the symbol to reveal in the symbol in the UI.
 	 */
-	Range lsp.Range `json:"range"`
+	Range Range `json:"range"`
 
 	/**
 	 * The range that should be selected and revealed when this symbol is being picked, e.g the name of a function.
 	 * Must be contained by the `range`.
 	 */
-	SelectionRange lsp.Range `json:"selectionRange"`
+	SelectionRange Range `json:"selectionRange"`
 
 	/**
 	 * Children of this symbol, e.g. properties of a class.
@@ -115,7 +113,7 @@ type DocumentSymbol struct {
 // 	 * syntax tree. It can therefore not be used to re-construct a hierarchy of
 // 	 * the symbols.
 // 	 */
-// 	Location lsp.Location `json:"location"`
+// 	Location Location `json:"location"`
 //
 // 	/**
 // 	 * The name of the symbol containing this symbol. This information is for

@@ -1,12 +1,10 @@
 package lsp
 
-import "github.com/sourcegraph/go-lsp"
-
 // Params for the CodeActionRequest
 type CodeActionParams struct {
-	TextDocument lsp.TextDocumentIdentifier `json:"textDocument"` // The document in which the command was invoked.
-	Range        lsp.Range                  `json:"range"`        // The range for which the command was invoked.
-	Context      CodeActionContext          `json:"context"`      // Context carrying additional information.
+	TextDocument TextDocumentIdentifier `json:"textDocument"` // The document in which the command was invoked.
+	Range        Range                  `json:"range"`        // The range for which the command was invoked.
+	Context      CodeActionContext      `json:"context"`      // Context carrying additional information.
 }
 
 // The kind of a code action.
@@ -75,7 +73,7 @@ const (
 // a code action is run.
 type CodeActionContext struct {
 	// An array of diagnostics.
-	Diagnostics []lsp.Diagnostic `json:"diagnostics"`
+	Diagnostics []Diagnostic `json:"diagnostics"`
 
 	// Requested kind of actions to return.
 	//
@@ -99,7 +97,7 @@ type CodeAction struct {
 	Kind *CodeActionKind `json:"kind,omitempty"`
 
 	// The diagnostics that this code action resolves.
-	Diagnostics *[]lsp.Diagnostic `json:"diagnostics,omitempty"`
+	Diagnostics *[]Diagnostic `json:"diagnostics,omitempty"`
 
 	// The workspace edit this code action performs.
 	Edit *WorkspaceEdit `json:"edit,omitempty"`
@@ -107,5 +105,5 @@ type CodeAction struct {
 	// A command this code action executes. If a code action
 	// provides an edit and a command, first the edit is
 	// executed and then the command.
-	Command *lsp.Command `json:"command,omitempty"`
+	Command *Command `json:"command,omitempty"`
 }

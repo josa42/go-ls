@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/creachadair/jrpc2"
-	"github.com/sourcegraph/go-lsp"
+	"github.com/josa42/go-ls/lsp"
 )
 
 type WorkspaceHandler struct {

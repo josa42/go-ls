@@ -3,7 +3,7 @@ package utils
 import (
 	"strings"
 
-	"github.com/sourcegraph/go-lsp"
+	"github.com/josa42/go-ls/lsp"
 )
 
 func LineRange(no int, line string) lsp.Range {

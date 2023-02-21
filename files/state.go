@@ -7,7 +7,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/sourcegraph/go-lsp"
+	"github.com/josa42/go-ls/lsp"
 )
 
 type State struct {

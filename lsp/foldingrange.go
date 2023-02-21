@@ -1,10 +1,8 @@
 package lsp
 
-import "github.com/sourcegraph/go-lsp"
-
 type FoldingRangeParams struct {
 	// The text document.
-	TextDocument lsp.TextDocumentIdentifier
+	TextDocument TextDocumentIdentifier
 }
 
 type FoldingRangeKind string
