@@ -20,7 +20,7 @@ func New() *Server {
 		State:    files.NewState(),
 	}
 
-	s.Root = RootHandler{server: s}
+	s.Root = NewRootHandler(s)
 	s.TextDocument = TextDocumentHandler{server: s}
 	s.Workspace = NewWorkspaceHandler(s)
 
@@ -45,6 +45,11 @@ func (s *Server) register(method string, handlerFn handler.Func) {
 		log.Printf("register: %s", method)
 	}
 	s.handlers[method] = handlerFn
+}
+
+func (s *Server) has(method string) bool {
+	_, ok := s.handlers[method]
+	return ok
 }
 
 func (s *Server) push(ctx context.Context, method string, p interface{}) error {

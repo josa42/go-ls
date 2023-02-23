@@ -9,7 +9,30 @@ import (
 )
 
 type TextDocumentHandler struct {
-	server *Server
+	server          *Server
+	listenToChanges bool
+}
+
+func (h *TextDocumentHandler) RegisterChangesListener() {
+	h.listenToChanges = true
+
+	if !h.server.has("textDocument/didChange") {
+		h.DidChange(func(RequestContext, lsp.DidChangeTextDocumentParams) error {
+			return nil
+		})
+	}
+
+	if !h.server.has("textDocument/didClose") {
+		h.DidClose(func(RequestContext, lsp.DidCloseTextDocumentParams) error {
+			return nil
+		})
+	}
+
+	if !h.server.has("textDocument/didOpen") {
+		h.DidOpen(func(RequestContext, lsp.DidOpenTextDocumentParams) error {
+			return nil
+		})
+	}
 }
 
 func (h *TextDocumentHandler) CodeAction(fn func(RequestContext, lsp.CodeActionParams) ([]lsp.CodeAction, error)) {
@@ -174,6 +197,11 @@ func (h *TextDocumentHandler) DidChange(fn func(RequestContext, lsp.DidChangeTex
 			log.Printf("%v", err)
 			return nil, err
 		}
+
+		if h.listenToChanges {
+			h.server.State.ApplyCanges(p.TextDocument.URI, p.ContentChanges)
+		}
+
 		return nil, fn(RequestContext{
 			Server:  *h.server,
 			Context: ctx,
@@ -188,6 +216,11 @@ func (h *TextDocumentHandler) DidClose(fn func(RequestContext, lsp.DidCloseTextD
 			log.Printf("%v", err)
 			return nil, err
 		}
+
+		if h.listenToChanges {
+			h.server.State.Remove(p.TextDocument.URI)
+		}
+
 		return nil, fn(RequestContext{
 			Server:  *h.server,
 			Context: ctx,
@@ -202,6 +235,11 @@ func (h *TextDocumentHandler) DidOpen(fn func(RequestContext, lsp.DidOpenTextDoc
 			log.Printf("%v", err)
 			return nil, err
 		}
+
+		if h.listenToChanges {
+			h.server.State.SetDocument(p.TextDocument)
+		}
+
 		return nil, fn(RequestContext{
 			Server:  *h.server,
 			Context: ctx,

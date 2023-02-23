@@ -11,6 +11,17 @@ type RootHandler struct {
 	server *Server
 }
 
+func NewRootHandler(server *Server) RootHandler {
+	root := RootHandler{server: server}
+
+	// Default handler
+	root.Initialize(func(Server, context.Context, lsp.InitializeParams) (lsp.InitializeResult, error) {
+		return lsp.InitializeResult{}, nil
+	})
+
+	return root
+}
+
 func (h *RootHandler) Initialize(fn func(Server, context.Context, lsp.InitializeParams) (lsp.InitializeResult, error)) {
 	h.server.register("initialize", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
 
@@ -46,6 +57,15 @@ func (h *RootHandler) Initialize(fn func(Server, context.Context, lsp.Initialize
 				}
 
 			}
+		}
+
+		if h.server.TextDocument.listenToChanges {
+			if res.Capabilities.TextDocumentSync == nil {
+				res.Capabilities.TextDocumentSync = &lsp.TextDocumentSyncOptions{}
+			}
+
+			res.Capabilities.TextDocumentSync.OpenClose = true
+			res.Capabilities.TextDocumentSync.Change = lsp.TDSKFull
 		}
 
 		return res, err
