@@ -22,7 +22,7 @@ func New() *Server {
 
 	s.Root = RootHandler{server: s}
 	s.TextDocument = TextDocumentHandler{server: s}
-	s.Workspace = WorkspaceHandler{server: s}
+	s.Workspace = NewWorkspaceHandler(s)
 
 	return s
 }

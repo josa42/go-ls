@@ -2,8 +2,6 @@ package ls
 
 import (
 	"context"
-	"encoding/json"
-	"log"
 
 	"github.com/creachadair/jrpc2"
 	"github.com/josa42/go-ls/lsp"
@@ -13,24 +11,44 @@ type RootHandler struct {
 	server *Server
 }
 
-func unmarshalParams(r *jrpc2.Request, v interface{}) error {
-	raw := make(map[string]interface{})
-	r.UnmarshalParams(&raw)
-
-	b, _ := json.Marshal(raw)
-
-	return json.Unmarshal(b, v)
-}
-
 func (h *RootHandler) Initialize(fn func(Server, context.Context, lsp.InitializeParams) (lsp.InitializeResult, error)) {
 	h.server.register("initialize", func(ctx context.Context, r *jrpc2.Request) (interface{}, error) {
+
 		p := lsp.InitializeParams{}
-		// FIXME Always throws error
-		if err := unmarshalParams(r, &p); err != nil {
-			log.Printf("%v", err)
+
+		err := r.UnmarshalParams(&p)
+		if err != nil {
 			return nil, err
 		}
-		return fn(*h.server, ctx, p)
+		res, err := fn(*h.server, ctx, p)
+
+		if len(h.server.Workspace.commands) > 0 {
+			if res.Capabilities.ExecuteCommandProvider == nil {
+				res.Capabilities.ExecuteCommandProvider = &lsp.ExecuteCommandOptions{}
+			}
+
+			if res.Capabilities.ExecuteCommandProvider.Commands == nil {
+				res.Capabilities.ExecuteCommandProvider.Commands = []string{}
+			}
+
+			for cmd := range h.server.Workspace.commands {
+				found := false
+
+				for _, registered := range res.Capabilities.ExecuteCommandProvider.Commands {
+					if registered == cmd {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					res.Capabilities.ExecuteCommandProvider.Commands = append(res.Capabilities.ExecuteCommandProvider.Commands, cmd)
+				}
+
+			}
+		}
+
+		return res, err
 	})
 }
 
