@@ -17,18 +17,7 @@ type WorkspaceHandler struct {
 }
 
 func NewWorkspaceHandler(server *Server) WorkspaceHandler {
-	workspace := WorkspaceHandler{server: server, commands: map[string]CommandFn{}}
-
-	// Default handler
-	workspace.ExecuteCommand(func(ctx RequestContext, p lsp.ExecuteCommandParams) error {
-		if fn, ok := workspace.commands[p.Command]; ok {
-			return fn(ctx, p.Arguments)
-		}
-
-		return fmt.Errorf("Command \"%s\" not found", p.Command)
-	})
-
-	return workspace
+	return WorkspaceHandler{server: server, commands: map[string]CommandFn{}}
 }
 
 func (h *WorkspaceHandler) DidChangeConfiguration(func(RequestContext)) {}
@@ -41,14 +30,26 @@ func (h *WorkspaceHandler) ExecuteCommand(fn func(RequestContext, lsp.ExecuteCom
 			return nil, err
 		}
 
-		return nil, fn(RequestContext{
+		reqCtx := RequestContext{
 			Server:  *h.server,
 			Context: ctx,
-		}, p)
+		}
+
+		if fn, ok := h.commands[p.Command]; ok {
+			return nil, fn(reqCtx, p.Arguments)
+		}
+
+		return nil, fn(reqCtx, p)
 	})
 }
 
 func (h *WorkspaceHandler) RegisterCommand(command string, fn CommandFn) {
+	if !h.server.has("workspace/executeCommand") {
+		h.ExecuteCommand(func(ctx RequestContext, p lsp.ExecuteCommandParams) error {
+			return fmt.Errorf("Command \"%s\" not found", p.Command)
+		})
+	}
+
 	h.commands[command] = fn
 }
 
